@@ -1,0 +1,9 @@
+## Title: Gnomeregan Profession Sharer
+## Notes: Allows player to share his professions' recipes to others
+## Interface: 20400
+## Author: MarWit, Congr00
+## Version: 1.0
+
+GPSUI.xml
+GPS_Serializer.lua
+GPS.lua

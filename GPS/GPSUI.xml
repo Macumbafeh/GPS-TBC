@@ -1,0 +1,337 @@
+<Ui>
+    <Script file="GPSUI.lua"/>
+
+    <Button name="GPSUIButtonTemplate" virtual="true">
+        <Size>
+            <AbsDimension x="300" y="16" />
+        </Size>
+        <NormalFont style="GameFontHighlightLeft"/>
+        <Scripts>
+            <OnLoad>
+                self:RegisterForClicks("LeftButtonDown", "RightButtonDown");
+            </OnLoad>
+            <OnLeave>
+                self:SetTextColor(1, 0.8, 0.8, 0.8)
+                if not GPSUIClicked and GPSUIMouseover then
+                    HideUIPanel(ItemRefTooltip)
+                end
+                GPSUIClicked = false
+            </OnLeave>
+        </Scripts>
+    </Button>
+
+    <Frame name="GPSUI" parent="UIParent" enableMouse="true" movable="true" inherits="BasicFrameTemplate" hidden="true">
+        <Size>
+            <AbsDimension x="350" y="466"/>
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        <Scripts>
+            <OnLoad>
+                self:RegisterForDrag('LeftButton')
+                GPSUIOnLoad()
+                tinsert(UISpecialFrames, self:GetName());
+            </OnLoad>
+            <OnDragStart>
+                if not self.isLocked then
+                    self:StartMoving()
+                end
+            </OnDragStart>
+            <OnDragStop>
+                self:StopMovingOrSizing()
+            </OnDragStop>
+            <OnShow>
+                PlaySound('igCharacterInfoOpen');
+                GameTooltip:SetPoint('TOPRIGHT', _G['GPSUI'], 'TOPRIGHT', 7, -3)
+            </OnShow>
+            <OnHide>
+                PlaySound('igCharacterInfoClose');
+            </OnHide>
+        </Scripts>
+        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+            <BackgroundInsets>
+                <AbsInset left="8" right="8" top="8" bottom="8" />
+            </BackgroundInsets>
+            <TileSize>
+                <AbsValue val="32" />
+            </TileSize>
+            <EdgeSize>
+                <AbsValue val="32" />
+            </EdgeSize>
+        </Backdrop>
+        <Frames>
+            <Frame name="GPSUIHeader" frameStrata="HIGH">
+                <Size>
+                    <AbsDimension x="500" y="64"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOP" relativeTo="GPSUI" relativePoint="TOP">
+                        <Offset>
+                            <AbsDimension x="0" y="13"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Header" />
+                <Layers>
+                    <Layer>
+                        <FontString name="GPSUIHeaderText" inherits="GameFontNormalLarge" text="Unknown">
+                            <Anchors>
+                                <Anchor point="CENTER" relativeTo="GPSUIHeader" relativePoint="TOP">
+                                    <Offset>
+                                        <AbsDimension x="0" y="-20"/>
+                                    </Offset>
+                                </Anchor>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </Frame>
+            <ScrollFrame name="GPSUIScrollBar" inherits="FauxScrollFrameTemplate" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="8" y="-42"/>
+                        </Offset>
+                    </Anchor>
+                    <Anchor point="BOTTOMRIGHT">
+                        <Offset>
+                            <AbsDimension x="-38" y="78"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnVerticalScroll>
+                        FauxScrollFrame_OnVerticalScroll(16, GPSUIScrollBarUpdate);
+                    </OnVerticalScroll>
+                    <OnShow>
+                        GPSUIScrollBarUpdate()
+                    </OnShow>
+                </Scripts>
+            </ScrollFrame>
+            <Button name="GPSUIFrameCloseButton" inherits="UIPanelCloseButton">
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="GPSUI" relativePoint="TOPRIGHT">
+                        <Offset>
+                            <AbsDimension x="-8" y="-8"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIToggleMouseoverButton">
+                <Size>
+                    <AbsDimension x="16" y="16"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="GPSUIFrameCloseButton" relativePoint="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="6" y="-10"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <NormalTexture file="Interface\Buttons\UI-PlusButton-Up"/>
+                <PushedTexture file="Interface\Buttons\UI-PlusButton-Down"/>
+                <HighlightTexture file="Interface\Buttons\UI-PlusButton-Hilight" alphaMode="ADD"/>
+                <Scripts>
+                    <OnClick>
+                        GPSUIMouseover = not GPSUIMouseover
+                    </OnClick>
+                </Scripts>
+            </Button>
+            <Frame name="GPSUIHighlightFrame" hidden="true">
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <Texture name="GPSUIHighlight" file="Interface\Buttons\UI-Listbox-Highlight2"/>
+                    </Layer>
+                </Layers>
+            </Frame>
+            <Button name="GPSUIEntry1" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIScrollBar" relativePoint="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="8" y="0"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry2" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry1" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry3" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry2" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry4" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry3" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry5" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry4" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry6" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry5" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry7" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry6" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry8" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry7" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry9" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry8" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry10" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry9" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry11" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry10" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry12" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry11" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry13" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry12" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry14" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry13" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry15" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry14" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry16" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry15" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry17" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry16" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry18" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry17" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry19" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry18" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry20" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry19" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry21" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry20" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="GPSUIEntry22" inherits="GPSUIButtonTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="GPSUIEntry21" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <EditBox name="$parentSearchBar" letters="80" autoFocus="false">
+                <Size x="128" y="20" />
+                <Anchors>
+                    <Anchor point="BOTTOMRIGHT" relativeTo="GPSUIScrollBar" relativePoint="BOTTOMLEFT">
+                        <Offset x="230" y="-45" />
+                    </Anchor>
+                </Anchors>
+                <Layers>
+                    <Layer level="BACKGROUND">
+                        <Texture name="$parentLeft" file="Interface\Common\Common-Input-Border">
+                            <Size>
+                                <AbsDimension x="8" y="20"/>
+                            </Size>
+                            <Anchors>
+                                <Anchor point="TOPLEFT">
+                                    <Offset x="-5" y="0"/>
+                                </Anchor>
+                            </Anchors>
+                            <TexCoords left="0" right="0.0625" top="0" bottom="0.625"/>
+                        </Texture>
+                        <Texture name="$parentRight" file="Interface\Common\Common-Input-Border">
+                            <Size>
+                                <AbsDimension x="8" y="20"/>
+                            </Size>
+                            <Anchors>
+                                <Anchor point="RIGHT">
+                                    <Offset x="0" y="0"/>
+                                </Anchor>
+                            </Anchors>
+                            <TexCoords left="0.9375" right="1.0" top="0" bottom="0.625"/>
+                        </Texture>
+                        <Texture name="$parentMiddle" file="Interface\Common\Common-Input-Border">
+                            <Size>
+                                <AbsDimension x="0" y="20"/>
+                            </Size>
+                            <Anchors>
+                                <Anchor point="LEFT" relativeTo="$parentLeft" relativePoint="RIGHT"/>
+                                <Anchor point="RIGHT" relativeTo="$parentRight" relativePoint="LEFT"/>
+                            </Anchors>
+                            <TexCoords left="0.0625" right="0.9375" top="0" bottom="0.625"/>
+                        </Texture>
+                    </Layer>
+                </Layers>
+                <Scripts>
+                    <OnShow>
+                        GPSUIHighlightFrame:Hide()
+                        this:SetText(SEARCH)
+                    </OnShow>
+                    <OnEnterPressed>
+                        this:ClearFocus()
+                    </OnEnterPressed>
+                    <OnEscapePressed>
+                        this:ClearFocus()
+                    </OnEscapePressed>
+                    <OnEditFocusLost>
+                        this:HighlightText(0, 0)
+                        if this:GetText() == '' then
+                            this:SetText(SEARCH)
+                        end
+                    </OnEditFocusLost>
+                    <OnEditFocusGained>
+                        this:HighlightText()
+                        if this:GetText() == SEARCH then
+                            this:SetText('')
+                        end
+                    </OnEditFocusGained>
+                    <OnTextChanged>
+                        GPSOnSearch(self:GetText():lower())
+                        GPSUIHighlightFrame:Hide()
+                    </OnTextChanged>
+                </Scripts>
+                <FontString inherits="ChatFontSmall" />
+            </EditBox>
+        </Frames>
+    </Frame>
+</Ui>
